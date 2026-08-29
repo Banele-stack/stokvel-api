@@ -22,6 +22,15 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
+      // Hosted Postgres providers that require an encrypted connection
+      // (Neon, Render's own Postgres, etc.) reject a plain connection
+      // outright — but a local dev Postgres on localhost typically has no
+      // SSL listener at all, so this can't just be on unconditionally.
+      // rejectUnauthorized: false accepts the provider's own cert without
+      // pinning a CA bundle, which is fine for this stage but worth
+      // tightening (a real CA bundle) before this ever holds production
+      // tenant data.
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
       autoLoadEntities: true,
       synchronize: false,
       migrations: [join(__dirname, 'migrations', '*.js')],
